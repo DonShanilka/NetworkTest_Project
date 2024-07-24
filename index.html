@@ -6,6 +6,15 @@
   <title>Network Speed Test</title>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
+
+<style>
+    #internet_info {
+      width: 800px;
+      max-width: 80%;
+      margin: 0 auto;
+    }
+  </style>
+
 <body>
   <h1>Network Speed Test</h1>
   <button id="startTest">Start Test</button>
@@ -32,6 +41,14 @@
         </tr>
     </table>
 
+    <div class="container">
+        <h2>IP Address: <span id="ipValue"></span></h2>
+        <div id="internet_info"></div>
+      </div>
+
+    <div id="data"></div>
+
   <script src="speedTest.js"></script>
+
 </body>
 </html>

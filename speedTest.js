@@ -11,10 +11,10 @@ document.getElementById('startTest').addEventListener('click', () => {
 
 function testDownloadSpeed() {
     return new Promise((resolve, reject) => {
-        const downloadSize = 5 * 1024 * 1024; // 5 MB
+        const downloadSize = 1 * 1024 * 1024; // 5 MB
         const startTime = (new Date()).getTime();
 
-        fetch('http://ip-api.com/json', { cache: 'no-cache' })
+        fetch('https://api.techniknews.net/ipgeo/', { cache: 'no-cache' })
             .then(response => response.blob())
             .then(blob => {
                 const endTime = (new Date()).getTime();
@@ -30,7 +30,7 @@ function testDownloadSpeed() {
 
 function testUploadSpeed() {
     return new Promise((resolve, reject) => {
-        const uploadSize = 4 * 1024 * 1024; // 2 MB
+        const uploadSize = 1 * 1024 * 1024; // 2 MB
         const data = new Uint8Array(uploadSize);
         const startTime = (new Date()).getTime();
 
@@ -59,7 +59,7 @@ const contry1 = document.getElementById('contry');
 const city1 = document.getElementById('city');
 const provider = document.getElementById('provider');
 
-fetch('http://ip-api.com/json')
+fetch('https://api.techniknews.net/ipgeo/')
     .then(res => res.json())
     .then(res => {
         console.log(res);
@@ -69,10 +69,53 @@ fetch('http://ip-api.com/json')
         provider.textContent = res.isp;
     });
 
-// $.getJSON("https://api.ipify.org?format=json", function (data) {
-//     $("#myIp").html(data.ip);
-// });
-
-$.getJSON('http://ip-api.com/json', function (data) {
-    $('#gmps').attr("src", "https://www.google.com/maps?q=" + data.lat + "," + data.lon + "&output=embed");
+$.getJSON("https://api.techniknews.net/ipgeo/", function (data) {
+    $("#myIp").html(data.ip);
 });
+
+$.getJSON('https://api.techniknews.net/ipgeo/', function (data) {
+    $('#gmps').attr("src", "https://www.google.com/maps?q=" + data.lat + "," + data.lon + "&output=embed")
+});
+
+
+let resDiv = document.querySelector('#internet_info');
+let ipElem = document.querySelector('#ipValue')
+getIpaddress();
+
+function getIpaddress() {
+    fetch('https://api.techniknews.net/ipgeo/').then(res => {
+        return res.json()
+    }).then(data => {
+        getInternet_info(data.ip)
+        ipElem.innerHTML = data.ip;
+    }).catch(err => {
+        console.log(`There was an error ${err}`)
+    })
+}
+
+
+function getInternet_info(ip) {
+    let ipAddress = ip;
+    let output = "";
+
+    fetch(`https://api.techniknews.net/ipgeo/${ipAddress}`).then(res => {
+        return res.json()
+    }).then(data => {
+        output += `
+      <ul class="collection">
+        <li class="collection-item">Country:: <strong>${data.country}</strong></li>
+        <li class="collection-item">City:: <strong>${data.city}</strong></li>
+        <li class="collection-item">Region:: <strong>${data.regionName}</strong></li>
+        <li class="collection-item">Timezone:: <strong>${data.timezone}</strong></li>
+        <li class="collection-item">Lat:: <strong>${data.lat}</strong></li>
+        <li class="collection-item">Lon:: <strong>${data.lon}</strong></li>
+        <li class="collection-item">Internet Organisation:: <strong>${data.org}</strong></li>
+        <li class="collection-item">Zip Code:: <strong>${data.zip ? data.zip : 'Unavailable(no Zip)'}</strong></li>
+      </ul>
+    `;
+        resDiv.innerHTML = output;
+        console.log(data)
+    }).catch(err => {
+        console.log(`There was an error in the info function:: ${err}`)
+    })
+}
