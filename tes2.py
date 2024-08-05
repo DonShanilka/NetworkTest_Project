@@ -252,6 +252,49 @@ class LoginRegisterApp(QtWidgets.QWidget):
         register_layout.addWidget(self.register_button)
         self.register_tab.setLayout(register_layout)
 
+        self.setStyleSheet("""
+            QLineEdit {
+                font-size: 16px;
+                padding: 8px;
+                border: 2px solid #ccc;
+                border-radius: 8px;
+            }
+            QPushButton {
+                font-size: 16px;
+                padding: 8px;
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                margin-top: 10px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QLabel {
+                font-size: 18px;
+                color: #333;
+            }
+            QFormLayout {
+                margin: 20px;
+            }
+            QTabWidget::pane {
+                border: 1px solid #ccc;
+                border-radius: 8px;
+            }
+            QTabBar::tab {
+                background: #eee;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                padding: 10px;
+                margin: 2px;
+            }
+            QTabBar::tab:selected {
+                background: #4CAF50;
+                color: white;
+            }
+        """)
+
     def register(self):
         username = self.register_username.text()
         password = self.register_password.text()
@@ -270,6 +313,8 @@ class LoginRegisterApp(QtWidgets.QWidget):
         username = self.login_username.text()
         password = self.login_password.text()
         encrypted_password = encrypt_data(password)
+
+        print({"Encrypt Password" : encrypted_password})
         
         for user in user_data:
             if user['username'] == username and user['password'] == encrypted_password:

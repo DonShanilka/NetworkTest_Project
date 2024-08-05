@@ -9,6 +9,10 @@ from speedtest import Speedtest
 import requests
 import socket
 from threading import Thread
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.animation import FuncAnimation
+import time
 
 # Encryption settings
 KEY = b'sixteen byte key'  # Must be 16 bytes (128 bits)
@@ -50,7 +54,7 @@ class NetworkMonitor(QtWidgets.QWidget):
 
     def initUI(self):
         self.setWindowTitle("Network Monitor")
-        self.setGeometry(100, 100, 1200, 600)
+        self.setGeometry(100, 100, 1200, 800)  # Increased height to accommodate the plot
 
         self.layout = QtWidgets.QVBoxLayout()
 
@@ -86,6 +90,18 @@ class NetworkMonitor(QtWidgets.QWidget):
         self.resultarea = QtWidgets.QTextEdit(self)
         self.resultarea.setReadOnly(True)
         self.layout.addWidget(self.resultarea)
+
+        # Create a FigureCanvasQTAgg object to embed the plot
+        self.fig, self.ax = plt.subplots()
+        self.canvas = FigureCanvas(self.fig)
+        self.layout.addWidget(self.canvas)
+
+        self.time_stamps = []
+        self.received_data = []
+        self.sent_data = []
+        self.max_length = 60
+
+        self.ani = FuncAnimation(self.fig, self.update_plot, interval=1000)  # Update every second
 
         self.setLayout(self.layout)
 
@@ -175,6 +191,47 @@ class NetworkMonitor(QtWidgets.QWidget):
 
         QtCore.QTimer.singleShot(1000, self.update_network_usage)
 
+    def update_plot(self, frame):
+        bytes_received = psutil.net_io_counters().bytes_recv
+        bytes_sent = psutil.net_io_counters().bytes_sent
+        bytes_total = bytes_received + bytes_sent
+
+        new_received = bytes_received - self.last_received
+        new_sent = bytes_sent - self.last_sent
+        new_total = bytes_total - self.last_total
+
+        mb_new_received = new_received / 1024 / 1024
+        mb_new_sent = new_sent / 1024 / 1024
+        mb_new_total = new_total / 1024 / 1024
+
+        self.totalUsage += mb_new_total
+        print(f"{mb_new_received:.2f} MB received, {mb_new_sent:.2f} MB sent, {mb_new_total:.2f} MB total")
+        print(f"Total Data Usage: {self.totalUsage:.2f} MB")
+
+        # Update the plot data
+        current_time = time.strftime('%H:%M:%S')
+        self.time_stamps.append(current_time)
+        self.received_data.append(mb_new_received)
+        self.sent_data.append(mb_new_sent)
+
+        # Keep the length of the lists manageable
+        if len(self.time_stamps) > self.max_length:
+            self.time_stamps.pop(0)
+            self.received_data.pop(0)
+            self.sent_data.pop(0)
+
+        self.ax.clear()
+        self.ax.plot(self.time_stamps, self.received_data, label='MB Received', color='blue')
+        self.ax.plot(self.time_stamps, self.sent_data, label='MB Sent', color='red')
+        self.ax.set_xlabel('Time')
+        self.ax.set_ylabel('MB')
+        self.ax.set_title('Network Data Usage Over Time')
+        self.ax.legend()
+        plt.xticks(rotation=45, ha='right')
+        plt.tight_layout()
+
+        self.canvas.draw()
+
     def getIP(self):
         ipp = str(self.inputArea.text())
         linkURl = "https://api.techniknews.net/ipgeo/"
@@ -252,6 +309,49 @@ class LoginRegisterApp(QtWidgets.QWidget):
         register_layout.addWidget(self.register_button)
         self.register_tab.setLayout(register_layout)
 
+        self.setStyleSheet("""
+            QLineEdit {
+                font-size: 16px;
+                padding: 8px;
+                border: 2px solid #ccc;
+                border-radius: 8px;
+            }
+            QPushButton {
+                font-size: 16px;
+                padding: 8px;
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                margin-top: 10px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QLabel {
+                font-size: 18px;
+                color: #333;
+            }
+            QFormLayout {
+                margin: 20px;
+            }
+            QTabWidget::pane {
+                border: 1px solid #ccc;
+                border-radius: 8px;
+            }
+            QTabBar::tab {
+                background: #eee;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                padding: 10px;
+                margin: 2px;
+            }
+            QTabBar::tab:selected {
+                background: #4CAF50;
+                color: white;
+            }
+        """)
+
     def register(self):
         username = self.register_username.text()
         password = self.register_password.text()
@@ -270,6 +370,8 @@ class LoginRegisterApp(QtWidgets.QWidget):
         username = self.login_username.text()
         password = self.login_password.text()
         encrypted_password = encrypt_data(password)
+
+        print({"Encrypt Password" : encrypted_password})
         
         for user in user_data:
             if user['username'] == username and user['password'] == encrypted_password:

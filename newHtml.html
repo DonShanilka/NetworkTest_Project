@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Monitor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Network Monitor</h1>
+    <button id="startTest">Start Speed Test</button>
+    <div id="results">
+        <p id="downloadSpeed">Download Speed: N/A</p>
+        <p id="uploadSpeed">Upload Speed: N/A</p>
+        <p id="ping">Ping: N/A</p>
+        <p id="totalUsage">Total Data Usage: N/A</p>
+    </div>
+    <script>
+        document.getElementById('startTest').addEventListener('click', async () => {
+            await getSpeed();
+            setInterval(getNetworkData, 1000);
+        });
+
+        let totalUsage = 0;
+        let lastReceived = 0;
+        let lastSent = 0;
+
+        async function getSpeed() {
+            const response = await fetch('https://api.speedtest.net/api/js/speedtest');
+            const data = await response.json();
+            const downloadSpeed = data.download / (1024 * 1024 * 8);
+            const uploadSpeed = data.upload / (1024 * 1024 * 8);
+            const ping = data.ping;
+            document.getElementById('downloadSpeed').innerText = `Download Speed: ${downloadSpeed.toFixed(2)} Mb`;
+            document.getElementById('uploadSpeed').innerText = `Upload Speed: ${uploadSpeed.toFixed(2)} Mb`;
+            document.getElementById('ping').innerText = `Ping: ${ping}`;
+        }
+
+        function getNetworkData() {
+            if (navigator.connection) {
+                const networkStats = navigator.connection;
+                const bytesReceived = networkStats.downlink * 1024 * 1024;
+                const bytesSent = networkStats.uplink * 1024 * 1024;
+                const bytesTotal = bytesReceived + bytesSent;
+
+                const newReceived = bytesReceived - lastReceived;
+                const newSent = bytesSent - lastSent;
+                const newTotal = bytesTotal - lastReceived - lastSent;
+
+                const mbNewReceived = newReceived / 1024 / 1024;
+                const mbNewSent = newSent / 1024 / 1024;
+                const mbNewTotal = newTotal / 1024 / 1024;
+
+                console.log(`${mbNewReceived.toFixed(2)} MB received, ${mbNewSent.toFixed(2)} MB sent, ${mbNewTotal.toFixed(2)} MB total`);
+
+                totalUsage += mbNewTotal;
+                document.getElementById('totalUsage').innerText = `Total Data Usage: ${totalUsage.toFixed(2)} MB`;
+
+                lastReceived = bytesReceived;
+                lastSent = bytesSent;
+            } else {
+                console.log('Network Information API is not supported by your browser.');
+            }
+        }
+    </script>
+</body>
+</html>

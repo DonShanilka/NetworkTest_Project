@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Monitor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .card h2 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>Network Monitor</h2>
+            <p id="download_speed">Download Speed: Calculating...</p>
+            <p id="upload_speed">Upload Speed: Calculating...</p>
+            <p id="ping">Ping: Calculating...</p>
+            <p id="network_usage">Network Usage: 0.00 MB received, 0.00 MB sent, 0.00 MB total</p>
+            <p id="total_usage">Total Data Usage: 0.00 MB</p>
+        </div>
+    </div>
+    <script>
+        async function updateData() {
+            const response = await fetch('/network_data');
+            const data = await response.json();
+            
+            document.getElementById('download_speed').innerText = `Download Speed: ${data.download_speed.toFixed(2)} Mb`;
+            document.getElementById('upload_speed').innerText = `Upload Speed: ${data.upload_speed.toFixed(2)} Mb`;
+            document.getElementById('ping').innerText = `Ping: ${data.ping.toFixed(2)} ms`;
+            document.getElementById('network_usage').innerText = `Network Usage: ${data.mb_new_received.toFixed(2)} MB received, ${data.mb_new_sent.toFixed(2)} MB sent, ${data.mb_new_total.toFixed(2)} MB total`;
+            document.getElementById('total_usage').innerText = `Total Data Usage: ${data.totalUsage.toFixed(2)} MB`;
+        }
+
+        setInterval(updateData, 1000);
+    </script>
+</body>
+</html>
